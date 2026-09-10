@@ -8,13 +8,14 @@ logging.basicConfig(level=logging.INFO)
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 GROUP_ID = int(os.environ.get("GROUP_ID"))
+THREAD_ID = int(os.environ.get("THREAD_ID"))
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Привет! 👋\n\n"
-        "Это бот для предложок проекта «Живём» — медиапроекта который объясняет сложные вещи простыми словами.\n\n"
-        "Есть идея для материала? Хочешь поделиться своей историей? Просто напиши сюда — мы читаем всё 🙏\n\n"
-        "Анонимность: если хочешь остаться анонимным — просто не указывай своё имя в тексте."
+        "Это бот для предложок проекта «Живём».\n\n"
+        "Есть идея для материала? Просто напиши сюда — мы читаем всё 🙏\n\n"
+        "Если хочешь остаться анонимным — не указывай своё имя в тексте."
     )
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -31,10 +32,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💬 {text}"
     )
     
-    await context.bot.send_message(chat_id=GROUP_ID, text=forward_text)
-    await update.message.reply_text(
-        "Спасибо! Мы получили твою идею и рассмотрим её 🙏"
-    )
+    try:
+        await context.bot.send_message(
+            chat_id=GROUP_ID,
+            message_thread_id=THREAD_ID,
+            text=forward_text
+        )
+        logging.info(f"Отправлено в группу {GROUP_ID} тред {THREAD_ID}")
+        await update.message.reply_text("Спасибо! Мы получили твою идею 🙏")
+    except Exception as e:
+        logging.error(f"Ошибка: {e}")
+        await update.message.reply_text(f"Ошибка: {e}")
 
 async def main():
     app = Application.builder().token(BOT_TOKEN).build()
